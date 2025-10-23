@@ -1,0 +1,5 @@
+main (afl_driver.cpp:183)
+ExecuteFilesOnyByOne (afl_driver.cpp:167)
+LLVMFuzzerTestOneInput (libpng_read_fuzzer.cc:192)
+MAGMA_png_read_update_info (pngread.c:278)
+MAGMA_png_read_transform_info (pngrtran.c:1964)

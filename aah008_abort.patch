@@ -1,0 +1,40 @@
+diff --git a/pngrtran.c b/pngrtran.c
+index 238f5af..df913b1 100644
+--- a/pngrtran.c
++++ b/pngrtran.c
+@@ -17,6 +17,7 @@
+  */
+ 
+ #include "pngpriv.h"
++#include <stdlib.h>
+ 
+ #ifdef PNG_ARM_NEON_IMPLEMENTATION
+ #  if PNG_ARM_NEON_IMPLEMENTATION == 1
+@@ -1959,8 +1960,11 @@ png_read_transform_info(png_structrp png_ptr, png_inforp info_ptr)
+          info_ptr->bit_depth = 8;
+          info_ptr->num_trans = 0;
+ 
+-         if (png_ptr->palette == NULL)
++         if (png_ptr->palette == NULL){
++            abort();
+             png_error (png_ptr, "Palette is NULL in indexed image");
++         }
++            
+       }
+       else
+       {
+diff --git a/pngset.c b/pngset.c
+index ec75dbe..bfad464 100644
+--- a/pngset.c
++++ b/pngset.c
+@@ -603,7 +603,9 @@ png_set_PLTE(png_structrp png_ptr, png_inforp info_ptr,
+ #        endif
+       ))
+    {
+-      png_error(png_ptr, "Invalid palette");
++      // png_error(png_ptr, "Invalid palette");
++      png_chunk_report(png_ptr, "Invalid palette", PNG_CHUNK_ERROR);
++      return;
+    }
+ 
+    /* It may not actually be necessary to set png_ptr->palette here;
