@@ -3,8 +3,16 @@
 #cd libming-CVE-2016-9827/; 
 #git checkout e397b5e
 set -e
+
+if [ -z "$AFLGO" ]; then
+    echo "AFLGO environment variable is not set. Please set it to the AFLGo installation path."
+    exit 1
+fi
+
 git clone --no-checkout https://github.com/glennrp/libpng.git
 git -C libpng checkout dbe3e0c43e549a1602286144d94b0666549b18e6
+patch -p1 -d libpng < aah008_abort.patch
+
 cd libpng
 rm -rf obj-aflgo
 mkdir obj-aflgo; mkdir obj-aflgo/temp
@@ -30,13 +38,12 @@ cp ../aah008_BBtargets.txt $TMP_DIR/BBtargets_final.txt
 #make clean; 
 #make
 autoreconf -f -i
-CFLAGS="$ADDITIONAL" CXXFLAGS="$ADDITIONAL" ./configure --with-libpng-prefix=MAGMA_ --disable-shared
+CFLAGS="$ADDITIONAL" CXXFLAGS="$ADDITIONAL" ./configure  --disable-shared
 make -j$(nproc) clean
 make -j$(nproc) libpng16.la
 cp .libs/libpng16.a "$OUT/"
 # build libpng_read_fuzzer
 export CXXFLAGS="$ADDITIONAL"
-
 $CXX $CXXFLAGS -std=c++11 -c $AFLGO/afl_driver.cpp -fPIC -o "$OUT/afl_driver.o"
 $CXX $CXXFLAGS -std=c++11 -I. \
      contrib/oss-fuzz/libpng_read_fuzzer.cc "$OUT/afl_driver.o"\
@@ -48,13 +55,12 @@ cp libpng_read_fuzzer "$OUT/"
 cat $TMP_DIR/BBnames.txt | rev | cut -d: -f2- | rev | sort | uniq > $TMP_DIR/BBnames2.txt && mv $TMP_DIR/BBnames2.txt $TMP_DIR/BBnames.txt
 cat $TMP_DIR/BBcalls.txt | sort | uniq > $TMP_DIR/BBcalls2.txt && mv $TMP_DIR/BBcalls2.txt $TMP_DIR/BBcalls.txt
 $AFLGO/scripts/BBmapping.py $TMP_DIR/BBtargets.txt $TMP_DIR/BBnames.txt $TMP_DIR/real.txt
-# cd util; 
 $AFLGO/scripts/genDistance.sh $SUBJECT $TMP_DIR libpng_read_fuzzer
 
 # === instrument ===
 #cd -; CFLAGS="-distance=$TMP_DIR/distance.cfg.txt -targets=$TMP_DIR/BBtargets_final.txt" CXXFLAGS="-distance=$TMP_DIR/distance.cfg.txt -targets=$TMP_DIR/BBtargets_final.txt" ../configure --disable-shared --prefix=`pwd`
 #make clean; make
-CFLAGS="-distance=$TMP_DIR/distance.cfg.txt -targets=$TMP_DIR/BBtargets_final.txt" CXXFLAGS="-distance=$TMP_DIR/distance.cfg.txt -targets=$TMP_DIR/BBtargets_final.txt" ./configure --with-libpng-prefix=MAGMA_ --disable-shared
+CFLAGS="-distance=$TMP_DIR/distance.cfg.txt -targets=$TMP_DIR/BBtargets_final.txt" CXXFLAGS="-distance=$TMP_DIR/distance.cfg.txt -targets=$TMP_DIR/BBtargets_final.txt" ./configure --disable-shared
 make -j$(nproc) clean
 make -j$(nproc) libpng16.la
 cp .libs/libpng16.a "$OUT/"
@@ -75,4 +81,5 @@ cp libpng_read_fuzzer "$OUT/"
 #$AFLGO/afl-fuzz -m none -z exp -c 45m -i in -o out -d -- @@
 #$AFLGO/afl-fuzz -i in -o out -m none -t 9999 -d -- ./util/listswf @@
 
+cd libpng_fuzz
 # $AFLGO/afl-fuzz -i in -o out -m none -d -- /root/sdfuzz/scripts/fuzz/libpng/obj-aflgo/out/libpng_read_fuzzer @@
