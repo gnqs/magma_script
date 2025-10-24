@@ -11,6 +11,9 @@ fi
 
 export SCRIPTDIR=$PWD
 
+apt-get update && \
+    apt-get install -y git make autoconf automake libtool zlib1g-dev
+
 rm -rf libpng
 git clone --no-checkout https://githubfast.com/glennrp/libpng.git
 git -C libpng checkout dbe3e0c43e549a1602286144d94b0666549b18e6
@@ -55,7 +58,8 @@ $CXX $CXXFLAGS -std=c++11 -c $AFLGO/afl_driver.cpp -fPIC -o "$OUT/afl_driver.o"
 $CXX $CXXFLAGS -std=c++11 -I. \
      contrib/oss-fuzz/libpng_read_fuzzer.cc "$OUT/afl_driver.o"\
      -o libpng_read_fuzzer \
-     $LDFLAGS .libs/libpng16.a $LIBS -lz
+     -Wl,--whole-archive .libs/libpng16.a -Wl,--no-whole-archive \
+    $LDFLAGS $LIBS -lz
 cp libpng_read_fuzzer "$OUT/"
 unset CXXFLAGS
 
@@ -77,7 +81,8 @@ $CXX $CXXFLAGS -std=c++11 -c $AFLGO/afl_driver.cpp -fPIC -o "$OUT/afl_driver.o"
 $CXX $CXXFLAGS -std=c++11 -I. \
      contrib/oss-fuzz/libpng_read_fuzzer.cc "$OUT/afl_driver.o"\
      -o libpng_read_fuzzer \
-     $LDFLAGS .libs/libpng16.a $LIBS -lz
+     -Wl,--whole-archive .libs/libpng16.a -Wl,--no-whole-archive \
+    $LDFLAGS $LIBS -lz
 cp libpng_read_fuzzer "$OUT/"
 unset CXXFLAGS
 
