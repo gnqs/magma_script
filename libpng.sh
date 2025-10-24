@@ -95,3 +95,6 @@ unset CXXFLAGS
 
 # cd $SCRIPTDIR/libpng_fuzz
 # $AFLGO/afl-fuzz -i in -o out -m none -d -- $SCRIPTDIR/libpng/obj-aflgo/out/libpng_read_fuzzer @@
+
+# reproduce
+#  $SCRIPTDIR/libpng/obj-aflgo/out/libpng_read_fuzzer  $SCRIPTDIR/aah008_crash_inptut
